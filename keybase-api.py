@@ -1,3 +1,33 @@
+'''
+This script allows you to send messages to KeyBase chat channels (including teams). It works by exposing a
+webhook to Tautulli that is triggered when certain Plex events occur.
+
+This script expects a file called 'config.ini' in the same directory with the following layout:
+    [DEFAULT]
+    plex_libraries =
+      the_list_of_libraries_you_care_about
+    channel_name = keybase_team_name
+    channel_topic_name = keybase_team_channel
+
+Tautulli should be configured with a web hook that sends the following JSON data:
+    {
+    "action": "{action}",
+    "media_type" : "{media_type}",
+    "title": "{title}",
+    "library_name": "{library_name}",
+    "show_name": "{show_name}",
+    "episode_name": "{episode_name}",
+    "artist_name": "{artist_name}",
+    "album_name": "{album_name}",
+    "track_name": "{track_name}",
+    "track_artist": "{track_artist}"
+    }
+
+KeyBase: https://keybase.io/
+Tautulli: https://tautulli.com/
+
+'''
+
 import sys
 from flask import Flask, request
 import json
@@ -24,9 +54,9 @@ def webhook():
         kbmsg['body'] = "[plex-scripts] Playing: {}".format(plexdata['title'])
     else:
         if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['notify_libraries']:
-            if(plexdata['media_type'] == 'movie'):
+            if plexdata['media_type'] == 'movie':
                 kbmsg['body'] = "[plex-scripts] New movie added: {}".format(plexdata['title'])
-            if(plexdata['media_type'] == 'episode'):
+            if plexdata['media_type'] == 'episode':
                 kbmsg['body'] = "[plex-scripts] New episode added: {}".format(plexdata['title'])
 
     params = {
