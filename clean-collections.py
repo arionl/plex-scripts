@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+'''
+
+Collections is cool but Plex auto-creates them, even when where is only one movie in a collection.
+You can turn this off, but when you have to create *all* collections by hand.. I figured I'd leave it on and then
+just prune the extra collections once in a while.. at least that was the thought for this script (picked up most of
+it from a Reddit thread).
+
+'''
+
 import getpass
 from plexapi.myplex import MyPlexAccount
 
