@@ -51,13 +51,13 @@ def webhook():
     sys.stdout.flush()
     plexdata = json.loads(json.dumps(request.json))
     if plexdata['action'] == 'play':
-        kbmsg['body'] = "[plex-scripts] Playing: {}".format(plexdata['title'])
+        kbmsg['body'] = "[Plex] Playing: {}".format(plexdata['title'])
     else:
         if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['notify_libraries']:
             if plexdata['media_type'] == 'movie':
-                kbmsg['body'] = "[plex-scripts] New movie added: {}".format(plexdata['title'])
+                kbmsg['body'] = "[Plex] New movie added: {}".format(plexdata['title'])
             if plexdata['media_type'] == 'episode':
-                kbmsg['body'] = "[plex-scripts] New episode added: {}".format(plexdata['title'])
+                kbmsg['body'] = "[Plex] New episode added: {}".format(plexdata['title'])
 
     params = {
         "options": {

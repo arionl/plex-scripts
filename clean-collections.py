@@ -12,8 +12,8 @@ it from a Reddit thread).
 import getpass
 from plexapi.myplex import MyPlexAccount
 
-username = input("plex-scripts Username: ")
-server = input("plex-scripts Server: ")
+username = input("Plex Username: ")
+server = input("Plex Server: ")
 password = getpass.getpass()
 
 account = MyPlexAccount(username, password)
