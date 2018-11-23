@@ -81,4 +81,4 @@ def webhook():
     return '', 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=config['DEFAULT']['flask_port'])
+    app.run(host='0.0.0.0', port=int(config['DEFAULT']['flask_port']))
