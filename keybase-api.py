@@ -51,11 +51,11 @@ def webhook():
     sys.stdout.flush()
     plexdata = json.loads(json.dumps(request.json))
     if plexdata['action'] == 'play':
-        kbmsg['body'] = "[Plex] Playing: {}".format(plexdata['title'])
+        kbmsg['body'] = "*[Plex] Playing: {} ({})*".format(plexdata['title'],plexdata['year'])
     else:
         if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['notify_libraries']:
             if plexdata['media_type'] == 'movie':
-                kbmsg['body'] = "[Plex] New movie added: {}".format(plexdata['title'])
+                kbmsg['body'] = "*[Plex] New movie added: {} ({})*".format(plexdata['title'],plexdata['year'])
             if plexdata['media_type'] == 'episode':
                 kbmsg['body'] = "[Plex] New episode added: {}".format(plexdata['title'])
 
@@ -81,4 +81,4 @@ def webhook():
     return '', 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    app.run(host='0.0.0.0', port=config['DEFAULT']['flask_port'])
