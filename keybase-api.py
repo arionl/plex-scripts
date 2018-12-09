@@ -20,7 +20,8 @@ Tautulli should be configured with a web hook that sends the following JSON data
     "artist_name": "{artist_name}",
     "album_name": "{album_name}",
     "track_name": "{track_name}",
-    "track_artist": "{track_artist}"
+    "track_artist": "{track_artist}",
+    "year": "{year}"
     }
 
 KeyBase: https://keybase.io/
@@ -43,26 +44,11 @@ channel = { "name": config['DEFAULT']['channel_name'],
 
 app = Flask(__name__)
 
-@app.route('/', methods=['POST'])
-
-def webhook():
-    kbmsg = dict()
-    print(request.json)
-    sys.stdout.flush()
-    plexdata = json.loads(json.dumps(request.json))
-    if plexdata['action'] == 'play':
-        kbmsg['body'] = "*[Plex] Playing: {} ({})*".format(plexdata['title'],plexdata['year'])
-    else:
-        if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['notify_libraries']:
-            if plexdata['media_type'] == 'movie':
-                kbmsg['body'] = "*[Plex] New movie added: {} ({})*".format(plexdata['title'],plexdata['year'])
-            if plexdata['media_type'] == 'episode':
-                kbmsg['body'] = "[Plex] New episode added: {}".format(plexdata['title'])
-
+def send_to_keybase(message):
     params = {
         "options": {
             "channel": channel,
-            "message": kbmsg
+            "message": message
         }
     }
 
@@ -78,7 +64,46 @@ def webhook():
     p.stdin.close()
     p.wait()
 
+
+@app.route('/', methods=['POST'])
+def tautulli_webhook():
+    kbmsg = dict()
+    print(request.json)
+    sys.stdout.flush()
+    plexdata = json.loads(json.dumps(request.json))
+    if plexdata['action'] == 'play':
+        if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['plex_libraries']:
+            kbmsg['body'] = "[Plex] Playing: {} ({})".format(plexdata['title'],plexdata['year'])
+            send_to_keybase(kbmsg)
+    elif plexdata['action'] == 'created':
+        if plexdata['library_name'] and plexdata['library_name'] in config['DEFAULT']['plex_libraries']:
+            if plexdata['media_type'] == 'movie':
+                kbmsg['body'] = "*[Plex] New movie added: {} ({})*".format(plexdata['title'],plexdata['year'])
+                send_to_keybase(kbmsg)
+            if plexdata['media_type'] == 'episode':
+                kbmsg['body'] = "[Plex] New episode added: {}".format(plexdata['title'])
+                send_to_keybase(kbmsg)
+    else:
+        print("No action matched.")
+
     return '', 200
+
+@app.route('/alert', methods=['POST'])
+def alertManagerWebhook():
+    kbmsg = dict()
+    print(request.json)
+    sys.stdout.flush()
+    amdata = json.loads(json.dumps(request.json))
+    if amdata['commonLabels']['alertname'] == 'HighCPU':
+        if amdata['status'] == "firing":
+            kbmsg['body'] = "_[Plex] WARNING: CPU usage at {}%_".format(amdata['commonAnnotations']['cpupct'])
+            send_to_keybase(kbmsg)
+        else:
+            kbmsg['body'] = "_[Plex] RESOLVED: CPU back to normal_"
+            send_to_keybase(kbmsg)
+
+    return '', 200
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(config['DEFAULT']['flask_port']))
