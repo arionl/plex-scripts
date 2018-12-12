@@ -33,6 +33,8 @@ import sys
 from flask import Flask, request
 import json
 from subprocess import Popen, PIPE
+from dateutil.parser import parse
+from datetime import datetime,timezone
 import configparser
 
 config = configparser.ConfigParser()
@@ -96,10 +98,17 @@ def alertManagerWebhook():
     amdata = json.loads(json.dumps(request.json))
     if amdata['commonLabels']['alertname'] == 'HighCPU':
         if amdata['status'] == "firing":
-            kbmsg['body'] = "_[Plex] WARNING: CPU usage at {}%_".format(amdata['commonAnnotations']['cpupct'])
+            start_time = parse(amdata['alerts'][0]['startsAt'])
+            start_time = start_time.replace(tzinfo=timezone.utc).astimezone(tz=None)
+            kbmsg['body'] = "_[Plex] WARNING: CPU at {}% as of {}_".format(amdata['commonAnnotations']['cpupct'],start_time.ctime())
             send_to_keybase(kbmsg)
         else:
-            kbmsg['body'] = "_[Plex] RESOLVED: CPU back to normal_"
+            start_time = parse(amdata['alerts'][0]['startsAt'])
+            end_time = parse(amdata['alerts'][0]['endsAt'])
+            end_time = end_time.replace(tzinfo=timezone.utc).astimezone(tz=None)
+            elapsed = end_time - start_time
+            m, s = divmod(elapsed.total_seconds(), 60)
+            kbmsg['body'] = "_[Plex] RESOLVED: CPU normal as of {} ({}m {}s)_".format(end_time.ctime(),int(m),int(s))
             send_to_keybase(kbmsg)
 
     return '', 200
